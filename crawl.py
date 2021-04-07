@@ -11,11 +11,11 @@ from parser import AdvertisementPageParser
 class CrawlerBase(ABC):
 
     @abstractmethod
-    def start(self):
+    def start(self, store=False):
         pass
 
     @abstractmethod
-    def store(self, data):
+    def store(self, data, filename=None):
         pass
 
     @staticmethod
@@ -52,16 +52,18 @@ class LinkCrawler(CrawlerBase):
         #     print(lnk.get('href'))
         return adv_links
 
-    def start(self):
+    def start(self, store=False):
         adv_links = list()
         for city in self.cities:
             links = self.start_crawl_city(self.link.format(city))
             print(f'{city}total:', len(links))
             adv_links.extend(links)
-        self.store([li.get('href') for li in adv_links])
+        if store:
+            self.store([li.get('href') for li in adv_links])
+        return adv_links
 
-    def store(self, data):
-        with open('store/links.json', 'w') as f:
+    def store(self, data, *args):
+        with open('data/links.json', 'w') as f:
             """ change list to string"""
             f.write(json.dumps(data))
 
@@ -74,17 +76,19 @@ class DataCrawler(CrawlerBase):
 
     @staticmethod
     def __load_links():
-        with open('store/links.json', 'r') as f:
+        with open('data/links.json', 'r') as f:
             """ we should to load json data """
             links = json.loads(f.read())
         return links
 
-    def start(self):
+    def start(self, store=False):
         for link in self.links:
             response = self.get(link)
             data = self.parser.parse(response.text)
-            print(data)
+            if store:
+                self.store(data=data, filename=data.get('post_id', 'sample'))
 
-    def store(self, data):
-        with open('store/data.json','w') as f:
+    def store(self, data, filename):
+        with open(f'data/adv/{filename}.json', 'w') as f:
             f.write(json.dumps(data))
+        print(f'data/adv/{filename}.json')
