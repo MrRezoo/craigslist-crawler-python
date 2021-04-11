@@ -1,0 +1,4 @@
+requests~=2.25.1
+beautifulsoup4~=4.9.3
+selenium~=3.141.0
+pymongo~=3.11.3
